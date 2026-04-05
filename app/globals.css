@@ -1,0 +1,27 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-white text-gray-900 antialiased; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-gold hover:bg-brand-gold-light text-brand-blue-dark font-bold px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 text-lg;
+  }
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-100 text-brand-blue font-semibold px-8 py-4 rounded-xl transition-all duration-200 border-2 border-brand-blue text-lg;
+  }
+  .step-indicator {
+    @apply flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all duration-300;
+  }
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #002D6D; border-radius: 3px; }
+.zone-path { transition: fill 0.2s ease, opacity 0.2s ease; }
+.zone-path:hover { opacity: 0.85; cursor: pointer; }
