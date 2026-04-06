@@ -16,7 +16,6 @@ const zones = [
       { id: "A2", name: "Nicholson & Chimes (Lot A2)", desc: "Near The Chimes restaurant" },
       { id: "A3", name: "Tiger Park (Lot A3)", desc: "Adjacent to softball stadium" },
     ],
-    // SVG path for north zone
     path: "M 200 60 L 350 60 L 380 120 L 370 180 L 280 180 L 200 180 L 170 120 Z",
   },
   {
@@ -71,7 +70,7 @@ const streetLabels = [
   { text: "Dalrymple Dr", x: 280, y: 235, angle: 0 },
 ];
 
-export default function ZoneMap({ selectedZone, onSelectZone, selectedSpot, onSelectSpot }) {
+export default function ZoneMap({ selectedZone, onZoneSelect, selectedSpot, onSpotSelect }) {
   const [hoveredZone, setHoveredZone] = useState(null);
   const activeZone = zones.find((z) => z.id === selectedZone);
 
@@ -142,14 +141,14 @@ export default function ZoneMap({ selectedZone, onSelectZone, selectedSpot, onSe
                     stroke={isActive ? "#fff" : "transparent"}
                     strokeWidth={isActive ? 3 : 0}
                     className="zone-path"
-                    onClick={() => onSelectZone(zone.id)}
+                    onClick={() => onZoneSelect(zone.id)}
                     onMouseEnter={() => setHoveredZone(zone.id)}
                     onMouseLeave={() => setHoveredZone(null)}
                     role="button"
                     aria-label={`Select ${zone.name}`}
                     tabIndex={0}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") onSelectZone(zone.id);
+                      if (e.key === "Enter" || e.key === " ") onZoneSelect(zone.id);
                     }}
                   />
                   <text
@@ -228,7 +227,7 @@ export default function ZoneMap({ selectedZone, onSelectZone, selectedSpot, onSe
           {zones.map((z) => (
             <button
               key={z.id}
-              onClick={() => onSelectZone(z.id)}
+              onClick={() => onZoneSelect(z.id)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                 selectedZone === z.id
                   ? "bg-gray-100 ring-2 ring-brand-blue"
@@ -267,7 +266,7 @@ export default function ZoneMap({ selectedZone, onSelectZone, selectedSpot, onSe
             {activeZone.spots.map((spot) => (
               <button
                 key={spot.id}
-                onClick={() => onSelectSpot(spot.id)}
+                onClick={() => onSpotSelect(spot.id)}
                 className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition ${
                   selectedSpot === spot.id
                     ? "border-brand-gold bg-brand-gold/5"
