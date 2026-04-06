@@ -45,6 +45,19 @@ export default function BookPage() {
     isGuest: null, email: "", firstName: "", lastName: "", phone: "", password: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [takenSpots, setTakenSpots] = useState([]);
+
+  // Fetch already-booked spots when game changes
+  useEffect(() => {
+    if (!booking.game) { setTakenSpots([]); return; }
+    const game = GAMES.find((g) => g.id === booking.game);
+    if (!game) return;
+    fetch(`/api/availability?game=${encodeURIComponent("LSU vs. " + game.opponent)}`)
+      .then((r) => r.json())
+      .then((data) => setTakenSpots(data.takenSpots || []))
+      .catch(() => setTakenSpots([]));
+  }, [booking.game]);
+
 
   const [cardInstance, setCardInstance] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -234,6 +247,7 @@ export default function BookPage() {
               <p className="text-gray-500 mt-1">Select the area near Tiger Stadium where you&apos;ll be set up.</p>
             </div>
             <ZoneMap selectedZone={booking.zone} onZoneSelect={(z) => { update("zone", z); update("spot", null); }} selectedSpot={booking.spot} onSpotSelect={(s) => update("spot", s)} />
+              takenSpots={takenSpots}
           </div>
         )}
         {step === 3 && (
