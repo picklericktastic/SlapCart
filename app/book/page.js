@@ -17,13 +17,13 @@ import {
 import ZoneMap from "../../components/ZoneMap";
 
 const GAMES = [
-  { id: 1, opponent: "McNeese", date: "2025-09-06", time: "19:00", display: "Sat, Sep 6 — 7:00 PM" },
-  { id: 2, opponent: "Nicholls", date: "2025-09-13", time: "14:00", display: "Sat, Sep 13 — 2:00 PM" },
-  { id: 3, opponent: "South Carolina", date: "2025-09-20", time: "15:00", display: "Sat, Sep 20 — 3:00 PM" },
-  { id: 4, opponent: "Ole Miss", date: "2025-10-04", time: "19:30", display: "Sat, Oct 4 — 7:30 PM" },
-  { id: 5, opponent: "Missouri", date: "2025-10-18", time: "14:00", display: "Sat, Oct 18 — 2:00 PM" },
-  { id: 6, opponent: "Alabama", date: "2025-11-08", time: "19:30", display: "Sat, Nov 8 — 7:30 PM" },
-  { id: 7, opponent: "Arkansas", date: "2025-11-29", time: "14:00", display: "Sat, Nov 29 — 2:00 PM" },
+  { id: 1, opponent: "Clemson",           date: "2026-09-05", time: "19:00", display: "Sat, Sep 5 — 7:00 PM" },
+  { id: 2, opponent: "Louisiana Tech",    date: "2026-09-12", time: "15:00", display: "Sat, Sep 12 — 3:00 PM" },
+  { id: 3, opponent: "Texas A&M",         date: "2026-09-26", time: "19:30", display: "Sat, Sep 26 — 7:30 PM" },
+  { id: 4, opponent: "McNeese",           date: "2026-10-03", time: "15:00", display: "Sat, Oct 3 — 3:00 PM" },
+  { id: 5, opponent: "Mississippi State", date: "2026-10-17", time: "15:00", display: "Sat, Oct 17 — 3:00 PM" },
+  { id: 6, opponent: "Alabama",           date: "2026-11-07", time: "19:30", display: "Sat, Nov 7 — 7:30 PM" },
+  { id: 7, opponent: "Texas",             date: "2026-11-14", time: "19:30", display: "Sat, Nov 14 — 7:30 PM" },
 ];
 
 const STEP_LABELS = ["Game & Time", "Zone & Spot", "Your Info", "Pay"];
@@ -34,14 +34,17 @@ function generateTimeSlots(game) {
   const kickoffMin = parseInt(game.time.split(":")[1], 10);
   const kickoffTotalMinutes = kickoffHour * 60 + kickoffMin;
   const cutoffTotalMinutes = kickoffTotalMinutes - 8 * 60; // 8 hours before
-  const startHour = 6; // earliest slot 6 AM
+  const hardCapMinutes = 8 * 60 + 30; // hard cap at 8:30 AM
+  const effectiveCutoff = Math.min(cutoffTotalMinutes, hardCapMinutes);
 
   const slots = [];
-  for (let h = startHour; h <= 23; h++) {
-    if (h * 60 >= cutoffTotalMinutes) break;
+  for (let m = 6 * 60; m <= effectiveCutoff; m += 30) {
+    const h = Math.floor(m / 60);
+    const min = m % 60;
     const ampm = h >= 12 ? "PM" : "AM";
     const display12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-    slots.push({ value: `${String(h).padStart(2, "0")}:00`, label: `${display12}:00 ${ampm}` });
+    const minStr = min === 0 ? "00" : String(min);
+    slots.push({ value: `${String(h).padStart(2, "0")}:${minStr}`, label: `${display12}:${minStr} ${ampm}` });
   }
   return slots;
 }
@@ -171,7 +174,7 @@ export default function BookPage() {
             </div>
             <div className="flex justify-between border-t pt-2 mt-2">
               <span className="text-gray-500 font-semibold">Total</span>
-              <span className="font-bold text-brand-blue">$299.00</span>
+              <span className="font-bold text-brand-blue">$1,000.00</span>
             </div>
           </div>
           <Link href="/" className="btn-primary inline-block">
@@ -209,7 +212,7 @@ export default function BookPage() {
               <h2 className="font-display font-bold text-2xl text-brand-blue mb-2 flex items-center gap-2">
                 <Calendar size={24} /> Pick Your Game
               </h2>
-              <p className="text-gray-500 text-sm">LSU 2025 Home Schedule</p>
+              <p className="text-gray-500 text-sm">LSU 2026 Home Schedule</p>
             </div>
 
             <div className="grid gap-3">
@@ -443,7 +446,7 @@ export default function BookPage() {
                 <div className="flex justify-between pt-3 text-base">
                   <span className="font-bold text-gray-800">Total</span>
                   <span className="font-display font-black text-xl text-brand-blue">
-                    $299.00
+                    $1,000.00
                   </span>
                 </div>
               </div>
@@ -463,7 +466,7 @@ export default function BookPage() {
                 className="btn-primary w-full mt-6 flex items-center justify-center gap-2"
               >
                 <CreditCard size={20} />
-                Pay $299.00
+                Pay $1,000.00
               </button>
 
               <p className="text-xs text-gray-400 text-center mt-3">
