@@ -128,7 +128,7 @@ function Navbar() {
 const features = [
   {
     icon: Tv,
-    title: '65" Flat Screen TV',
+    title: '75" Flat Screen TV',
     desc: "Watch every play on a crystal-clear big screen with HDMI hookup for your streaming apps.",
   },
   {
@@ -167,7 +167,7 @@ const steps = [
 ];
 
 const inclusions = [
-  '65" TV with streaming capability',
+  '75" TV with streaming capability',
   "Premium Bluetooth speakers",
   "Starlink WiFi hotspot",
   "Quiet gas generator",
