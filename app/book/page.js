@@ -61,7 +61,10 @@ export default function BookPage() {
     if (sdkLoaded.current) return;
     sdkLoaded.current = true;
     const script = document.createElement("script");
-    script.src = "https://web.squarecdn.com/v1/square.js";
+    const isSandbox = (process.env.NEXT_PUBLIC_SQUARE_APP_ID || "").startsWith("sandbox-");
+    script.src = isSandbox
+      ? "https://sandbox.web.squarecdn.com/v1/square.js"
+      : "https://web.squarecdn.com/v1/square.js";
     document.head.appendChild(script);
   }, []);
 
