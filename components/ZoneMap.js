@@ -1,292 +1,171 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Compass } from "lucide-react";
+import { MapPin } from "lucide-react";
 
-const zones = [
-  {
-    id: "A",
-    name: "Zone A — North Lots",
-    color: "#002D6D",
-    hoverColor: "#1A4B9E",
-    description:
-      "Prime spots north of Tiger Stadium. Close to the main gates with easy access to North Stadium Drive. Popular with alumni groups and large tailgate setups.",
-    spots: [
-      { id: "A1", name: "North Stadium Dr (Lot A1)", desc: "50 yards from Gate 1" },
-      { id: "A2", name: "Nicholson & Chimes (Lot A2)", desc: "Near The Chimes restaurant" },
-      { id: "A3", name: "Tiger Park (Lot A3)", desc: "Adjacent to softball stadium" },
-    ],
-    path: "M 200 60 L 350 60 L 380 120 L 370 180 L 280 180 L 200 180 L 170 120 Z",
+const ZONES = {
+  A: {
+    id: "A", name: "Zone A — North Lots",
+    description: "North Stadium Dr & Nicholson Dr area. High-foot-traffic, popular tailgate corridor.",
+    color: "#1A4B9E", hoverColor: "#2563EB", textColor: "#ffffff", capacity: "High demand",
+    spots: ["A1 – North Stadium Dr", "A2 – Nicholson & Chimes", "A3 – Tiger Park"],
   },
-  {
-    id: "B",
-    name: "Zone B — East Lots",
-    color: "#D4A017",
-    hoverColor: "#F0C040",
-    description:
-      "High-energy spots east of the stadium near the practice fields and Cox Plaza. Great visibility and easy in-and-out access from Nicholson Drive.",
-    spots: [
-      { id: "B1", name: "East Stadium Dr (Lot B1)", desc: "Steps from Tiger Walk" },
-      { id: "B2", name: "Practice Facility (Lot B2)", desc: "Near football ops building" },
-      { id: "B3", name: "Cox Plaza (Lot B3)", desc: "Central east campus spot" },
-    ],
-    path: "M 390 120 L 450 80 L 520 100 L 540 170 L 520 240 L 450 260 L 390 240 L 380 180 Z",
+  B: {
+    id: "B", name: "Zone B — East Lots",
+    description: "East of the stadium near the Practice Facility. Great for late arrivals.",
+    color: "#D4A017", hoverColor: "#F0C040", textColor: "#001A42", capacity: "Moderate demand",
+    spots: ["B1 – East Stadium Dr", "B2 – Near Practice Facility", "B3 – Cox Communications Plaza"],
   },
-  {
-    id: "C",
-    name: "Zone C — South Lots",
-    color: "#2D8B46",
-    hoverColor: "#3DAF5C",
-    description:
-      "Spacious lots south of the stadium with room for larger setups. Close to the Vet School Quad and Nicholson Extension — a local favorite for families.",
-    spots: [
-      { id: "C1", name: "Nicholson Extension (Lot C1)", desc: "Extra space for big groups" },
-      { id: "C2", name: "South Stadium Rd (Lot C2)", desc: "Quick walk to south gates" },
-      { id: "C3", name: "Vet Quad (Lot C3)", desc: "Shaded area near vet school" },
-    ],
-    path: "M 200 280 L 280 280 L 370 280 L 380 320 L 360 380 L 280 400 L 200 380 L 170 320 Z",
+  C: {
+    id: "C", name: "Zone C — South Lots",
+    description: "South end of the stadium along Nicholson Extension. Spacious, easy access.",
+    color: "#059669", hoverColor: "#10B981", textColor: "#ffffff", capacity: "Moderate demand",
+    spots: ["C1 – Nicholson Extension", "C2 – South Stadium Rd", "C3 – Vet Quad Area"],
   },
-  {
-    id: "D",
-    name: "Zone D — West / Remote Lots",
-    color: "#6B21A8",
-    hoverColor: "#8B5CF6",
-    description:
-      "Budget-friendly remote lots west of the stadium near the Ag Center and Huey P. Long Field House. More space and a relaxed atmosphere — shuttle access available.",
-    spots: [
-      { id: "D1", name: "Huey P Long Field (Lot D1)", desc: "Historic west campus" },
-      { id: "D2", name: "Baseball Rd (Lot D2)", desc: "Near Alex Box Stadium" },
-      { id: "D3", name: "Ag Center (Lot D3)", desc: "Largest lot, most space" },
-    ],
-    path: "M 60 120 L 160 120 L 170 180 L 160 240 L 170 280 L 160 320 L 60 320 L 40 240 L 30 180 Z",
+  D: {
+    id: "D", name: "Zone D — Remote Lots",
+    description: "Remote parking areas near Huey P. Long Field. Best for large groups.",
+    color: "#7C3AED", hoverColor: "#8B5CF6", textColor: "#ffffff", capacity: "Lower demand",
+    spots: ["D1 – Huey P. Long Field", "D2 – Baseball Rd Lots", "D3 – Ag Center Area"],
   },
-];
+};
 
-const streetLabels = [
-  { text: "North Stadium Dr", x: 260, y: 50, angle: 0 },
-  { text: "Nicholson Dr", x: 500, y: 170, angle: 90 },
-  { text: "South Stadium Rd", x: 280, y: 415, angle: 0 },
-  { text: "Skip Bertman Dr", x: 20, y: 220, angle: 90 },
-  { text: "Dalrymple Dr", x: 280, y: 235, angle: 0 },
-];
-
-export default function ZoneMap({ selectedZone, onZoneSelect, selectedSpot, onSpotSelect }) {
+export default function ZoneMap({ selectedZone, onZoneSelect, selectedSpot, onSpotSelect, takenSpots = [] }) {
   const [hoveredZone, setHoveredZone] = useState(null);
-  const activeZone = zones.find((z) => z.id === selectedZone);
+
+  const fill = (id) => {
+    const z = ZONES[id];
+    const allTaken = ZONES[id].spots.every((s) => takenSpots.includes(s));
+    if (allTaken) return "#9ca3af88";
+    if (selectedZone === id) return z.hoverColor;
+    if (hoveredZone === id) return z.color + "CC";
+    return z.color + "88";
+  };
+
+  const stroke = (id) => {
+    const allTaken = ZONES[id].spots.every((s) => takenSpots.includes(s));
+    if (allTaken) return "#9ca3af";
+    return selectedZone === id ? ZONES[id].hoverColor : ZONES[id].color;
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display font-bold text-lg text-brand-blue">
-            Tiger Stadium Area Map
-          </h3>
-          <div className="flex items-center gap-1 text-gray-400 text-xs">
-            <Compass size={14} />
-            <span>N</span>
-          </div>
-        </div>
+    <div className="space-y-4">
+      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+        <p className="text-sm text-gray-500 text-center mb-3 flex items-center justify-center gap-1">
+          <MapPin className="w-4 h-4 text-brand-gold" />
+          Click a zone to select your drop-off area near Tiger Stadium
+        </p>
 
-        <div className="relative w-full" style={{ maxWidth: 580 }}>
-          <svg
-            viewBox="0 0 580 450"
-            className="w-full h-auto"
-            role="img"
-            aria-label="Interactive map of tailgate zones around Tiger Stadium"
-          >
-            {/* Background */}
-            <rect width="580" height="450" fill="#f8fafc" rx="12" />
+        <svg viewBox="0 0 400 360" className="w-full max-w-md mx-auto block" style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.15))" }}>
+          <rect width="400" height="360" fill="#e8ead0" rx="12" />
+          {/* Streets */}
+          <rect x="60" y="0" width="18" height="360" fill="#c8c9b0" />
+          <rect x="0" y="60" width="400" height="14" fill="#c8c9b0" />
+          <rect x="0" y="280" width="400" height="14" fill="#c8c9b0" />
+          <rect x="320" y="0" width="14" height="360" fill="#c8c9b0" />
+          <text x="69" y="190" fontSize="7" fill="#888" transform="rotate(-90, 69, 190)" textAnchor="middle" fontFamily="system-ui">NICHOLSON DR</text>
+          <text x="200" y="72" fontSize="7" fill="#888" textAnchor="middle" fontFamily="system-ui">NORTH STADIUM DR</text>
 
-            {/* Grid lines */}
-            {[100, 200, 300, 400, 500].map((x) => (
-              <line key={`v${x}`} x1={x} y1="0" x2={x} y2="450" stroke="#e2e8f0" strokeWidth="0.5" />
-            ))}
-            {[100, 200, 300, 400].map((y) => (
-              <line key={`h${y}`} x1="0" y1={y} x2="580" y2={y} stroke="#e2e8f0" strokeWidth="0.5" />
-            ))}
+          {/* Zone A — North */}
+          <path d="M78 74 L310 74 L310 170 L78 170 Z" fill={fill("A")} stroke={stroke("A")} strokeWidth={selectedZone === "A" ? 3 : 1.5}
+            className="zone-path cursor-pointer" onClick={() => onZoneSelect("A")}
+            onMouseEnter={() => setHoveredZone("A")} onMouseLeave={() => setHoveredZone(null)} />
+          <text x="194" y="116" fontSize="22" fontWeight="900" fill="rgba(255,255,255,0.9)" textAnchor="middle" fontFamily="system-ui" pointerEvents="none">A</text>
+          <text x="194" y="134" fontSize="8" fill="rgba(255,255,255,0.85)" textAnchor="middle" fontFamily="system-ui" pointerEvents="none">NORTH LOTS</text>
 
-            {/* Streets */}
-            <line x1="170" y1="40" x2="380" y2="40" stroke="#cbd5e1" strokeWidth="3" strokeDasharray="8 4" />
-            <line x1="540" y1="60" x2="540" y2="400" stroke="#cbd5e1" strokeWidth="3" strokeDasharray="8 4" />
-            <line x1="170" y1="420" x2="380" y2="420" stroke="#cbd5e1" strokeWidth="3" strokeDasharray="8 4" />
-            <line x1="20" y1="100" x2="20" y2="360" stroke="#cbd5e1" strokeWidth="3" strokeDasharray="8 4" />
-            <line x1="150" y1="230" x2="400" y2="230" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="6 3" />
+          {/* Tiger Stadium */}
+          <rect x="140" y="165" width="115" height="110" rx="8" fill="#002D6D" stroke="#D4A017" strokeWidth="3" />
+          <rect x="148" y="173" width="99" height="94" rx="5" fill="#1A4B9E" />
+          <rect x="158" y="183" width="79" height="74" rx="3" fill="#2d8a4e" />
+          <rect x="165" y="190" width="65" height="60" rx="2" fill="#34a058" />
+          {[202, 212, 222, 232, 242].map((y) => (
+            <line key={y} x1="165" y1={y} x2="230" y2={y} stroke="rgba(255,255,255,0.3)" strokeWidth="0.8" />
+          ))}
+          <rect x="165" y="190" width="65" height="8" rx="1" fill="#2563EB" opacity="0.7" />
+          <rect x="165" y="242" width="65" height="8" rx="1" fill="#2563EB" opacity="0.7" />
+          <text x="197.5" y="218" fontSize="7.5" fontWeight="bold" fill="#D4A017" textAnchor="middle" fontFamily="system-ui">TIGER</text>
+          <text x="197.5" y="228" fontSize="7.5" fontWeight="bold" fill="#D4A017" textAnchor="middle" fontFamily="system-ui">STADIUM</text>
 
-            {/* Street labels */}
-            {streetLabels.map((s) => (
-              <text
-                key={s.text}
-                x={s.x}
-                y={s.y}
-                fill="#94a3b8"
-                fontSize="9"
-                fontFamily="sans-serif"
-                textAnchor="middle"
-                transform={s.angle ? `rotate(${s.angle}, ${s.x}, ${s.y})` : undefined}
-              >
-                {s.text}
-              </text>
-            ))}
+          {/* Zone B — East */}
+          <path d="M334 74 L390 74 L390 286 L334 286 Z" fill={fill("B")} stroke={stroke("B")} strokeWidth={selectedZone === "B" ? 3 : 1.5}
+            className="zone-path cursor-pointer" onClick={() => onZoneSelect("B")}
+            onMouseEnter={() => setHoveredZone("B")} onMouseLeave={() => setHoveredZone(null)} />
+          <text x="362" y="178" fontSize="20" fontWeight="900" fill="rgba(0,26,66,0.9)" textAnchor="middle" fontFamily="system-ui" pointerEvents="none">B</text>
+          <text x="362" y="193" fontSize="7" fill="rgba(0,26,66,0.85)" textAnchor="middle" fontFamily="system-ui" pointerEvents="none">EAST LOTS</text>
 
-            {/* Zones */}
-            {zones.map((zone) => {
-              const isActive = selectedZone === zone.id;
-              const isHovered = hoveredZone === zone.id;
-              return (
-                <g key={zone.id}>
-                  <path
-                    d={zone.path}
-                    fill={isActive || isHovered ? zone.hoverColor : zone.color}
-                    opacity={isActive ? 0.95 : isHovered ? 0.85 : 0.7}
-                    stroke={isActive ? "#fff" : "transparent"}
-                    strokeWidth={isActive ? 3 : 0}
-                    className="zone-path"
-                    onClick={() => onZoneSelect(zone.id)}
-                    onMouseEnter={() => setHoveredZone(zone.id)}
-                    onMouseLeave={() => setHoveredZone(null)}
-                    role="button"
-                    aria-label={`Select ${zone.name}`}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") onZoneSelect(zone.id);
-                    }}
-                  />
-                  <text
-                    x={
-                      zone.id === "A" ? 275 :
-                      zone.id === "B" ? 460 :
-                      zone.id === "C" ? 275 :
-                      100
-                    }
-                    y={
-                      zone.id === "A" ? 130 :
-                      zone.id === "B" ? 175 :
-                      zone.id === "C" ? 340 :
-                      225
-                    }
-                    fill="white"
-                    fontSize="16"
-                    fontWeight="bold"
-                    fontFamily="sans-serif"
-                    textAnchor="middle"
-                    pointerEvents="none"
-                  >
-                    Zone {zone.id}
-                  </text>
-                </g>
-              );
-            })}
+          {/* Zone C — South */}
+          <path d="M78 294 L310 294 L310 350 L78 350 Z" fill={fill("C")} stroke={stroke("C")} strokeWidth={selectedZone === "C" ? 3 : 1.5}
+            className="zone-path cursor-pointer" onClick={() => onZoneSelect("C")}
+            onMouseEnter={() => setHoveredZone("C")} onMouseLeave={() => setHoveredZone(null)} />
+          <text x="194" y="325" fontSize="20" fontWeight="900" fill="rgba(255,255,255,0.95)" textAnchor="middle" fontFamily="system-ui" pointerEvents="none">C</text>
+          <text x="194" y="340" fontSize="7" fill="rgba(255,255,255,0.85)" textAnchor="middle" fontFamily="system-ui" pointerEvents="none">SOUTH LOTS</text>
 
-            {/* Tiger Stadium (center) */}
-            <rect
-              x="210"
-              y="190"
-              width="140"
-              height="70"
-              rx="8"
-              fill="#1e293b"
-              stroke="#475569"
-              strokeWidth="2"
-            />
-            <text
-              x="280"
-              y="220"
-              fill="white"
-              fontSize="10"
-              fontWeight="bold"
-              fontFamily="sans-serif"
-              textAnchor="middle"
-            >
-              TIGER STADIUM
-            </text>
-            <text
-              x="280"
-              y="235"
-              fill="#94a3b8"
-              fontSize="8"
-              fontFamily="sans-serif"
-              textAnchor="middle"
-            >
-              &quot;Death Valley&quot;
-            </text>
+          {/* Zone D — West/Remote */}
+          <path d="M0 74 L58 74 L58 350 L0 350 Z" fill={fill("D")} stroke={stroke("D")} strokeWidth={selectedZone === "D" ? 3 : 1.5}
+            className="zone-path cursor-pointer" onClick={() => onZoneSelect("D")}
+            onMouseEnter={() => setHoveredZone("D")} onMouseLeave={() => setHoveredZone(null)} />
+          <text x="29" y="215" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.95)" textAnchor="middle" fontFamily="system-ui" pointerEvents="none">D</text>
 
-            {/* Compass */}
-            <g transform="translate(540, 30)">
-              <circle r="16" fill="white" stroke="#cbd5e1" strokeWidth="1" />
-              <polygon points="0,-12 3,-4 -3,-4" fill="#002D6D" />
-              <polygon points="0,12 3,4 -3,4" fill="#cbd5e1" />
-              <text y="-4" fill="#002D6D" fontSize="6" fontWeight="bold" textAnchor="middle">
-                N
-              </text>
-            </g>
-          </svg>
-        </div>
+          {/* Compass */}
+          <g transform="translate(370, 330)">
+            <circle cx="0" cy="0" r="14" fill="white" opacity="0.9" />
+            <text x="0" y="-4" fontSize="8" fontWeight="bold" fill="#002D6D" textAnchor="middle" fontFamily="system-ui">N</text>
+            <line x1="0" y1="-11" x2="0" y2="-6" stroke="#002D6D" strokeWidth="1.5" />
+          </g>
+        </svg>
 
-        {/* Zone legend */}
-        <div className="flex flex-wrap gap-3 mt-4">
-          {zones.map((z) => (
-            <button
-              key={z.id}
-              onClick={() => onZoneSelect(z.id)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                selectedZone === z.id
-                  ? "bg-gray-100 ring-2 ring-brand-blue"
-                  : "hover:bg-gray-50"
-              }`}
-            >
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: z.color }}
-              />
-              Zone {z.id}
+        {/* Legend buttons */}
+        <div className="flex flex-wrap gap-2 justify-center mt-3">
+          {Object.values(ZONES).map((zone) => (
+            <button key={zone.id} onClick={() => onZoneSelect(zone.id)}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border-2 transition-all ${selectedZone === zone.id ? "shadow-md scale-105" : "opacity-70 hover:opacity-100"}`}
+              style={{ backgroundColor: zone.color + (selectedZone === zone.id ? "" : "33"), color: selectedZone === zone.id ? zone.textColor : zone.color, borderColor: selectedZone === zone.id ? zone.color : "transparent" }}>
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: zone.color }} />
+              Zone {zone.id}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Zone detail panel */}
-      {activeZone && (
-        <div
-          className="bg-white rounded-2xl border-2 p-6 animate-in fade-in slide-in-from-bottom-2"
-          style={{ borderColor: activeZone.color }}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <span
-              className="w-4 h-4 rounded-full"
-              style={{ backgroundColor: activeZone.color }}
-            />
-            <h4 className="font-display font-bold text-lg">{activeZone.name}</h4>
-          </div>
-          <p className="text-gray-600 text-sm mb-5">{activeZone.description}</p>
-
-          <p className="text-sm font-semibold text-gray-800 mb-3">
-            Choose a drop-off spot:
-          </p>
-          <div className="grid gap-3">
-            {activeZone.spots.map((spot) => (
-              <button
-                key={spot.id}
-                onClick={() => onSpotSelect(spot.id)}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition ${
-                  selectedSpot === spot.id
-                    ? "border-brand-gold bg-brand-gold/5"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <MapPin
-                  size={18}
-                  className={
-                    selectedSpot === spot.id
-                      ? "text-brand-gold"
-                      : "text-gray-400"
-                  }
-                />
-                <div>
-                  <p className="font-semibold text-sm">{spot.name}</p>
-                  <p className="text-gray-500 text-xs">{spot.desc}</p>
-                </div>
-              </button>
-            ))}
+      {/* Zone detail */}
+      {selectedZone && (
+        <div className="rounded-2xl p-5 border-2 transition-all duration-300"
+          style={{ borderColor: ZONES[selectedZone].color, backgroundColor: ZONES[selectedZone].color + "10" }}>
+          <h4 className="font-bold text-brand-blue text-lg">{ZONES[selectedZone].name}</h4>
+          <p className="text-gray-600 text-sm mt-1">{ZONES[selectedZone].description}</p>
+          <span className="inline-block mt-2 text-xs font-semibold px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: ZONES[selectedZone].color + "20", color: ZONES[selectedZone].color }}>
+            {ZONES[selectedZone].capacity}
+          </span>
+          <div className="mt-4">
+            <p className="text-sm font-semibold text-gray-700 mb-2">Choose your exact drop-off spot:</p>
+            <div className="space-y-2">
+              {ZONES[selectedZone].spots.map((spot) => {
+                const isTaken = takenSpots.includes(spot);
+                return (
+                  <button key={spot} onClick={() => !isTaken && onSpotSelect(spot)} disabled={isTaken}
+                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
+                      isTaken
+                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                        : selectedSpot === spot
+                        ? "border-brand-gold bg-brand-gold/10 text-brand-blue"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-brand-gold/50"
+                    }`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: isTaken ? "#9ca3af" : selectedSpot === spot ? ZONES[selectedZone].color : "#9ca3af" }} />
+                        {spot}
+                      </div>
+                      {isTaken && (
+                        <span className="text-xs font-semibold bg-red-100 text-red-500 px-2 py-0.5 rounded-full flex-shrink-0">
+                          Booked
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
