@@ -1,3 +1,4 @@
+// Square sandbox mode — swap SQUARE_ACCESS_TOKEN and app/location IDs to go live
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
