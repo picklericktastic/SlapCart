@@ -42,7 +42,17 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: msg }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, paymentId: data.payment.id });
+    const paymentId = data.payment.id;
+
+    // ── Fire confirmation + owner alert emails (non-blocking) ────────────────
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.slapcarts.com";
+    fetch(`${baseUrl}/api/send-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ booking, paymentId }),
+    }).catch((err) => console.error("Email send failed (non-fatal):", err));
+
+    return NextResponse.json({ success: true, paymentId });
   } catch (err) {
     console.error("Payment route error:", err);
     return NextResponse.json({ success: false, error: "Server error. Please try again." }, { status: 500 });
