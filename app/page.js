@@ -19,7 +19,7 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollhY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -228,7 +228,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/book" className="btn-primary text-center">
-              Book Your Cart — $299
+              Book Your Cart — $1,000
             </Link>
             <a href="#how-it-works" className="btn-secondary text-center">
               See How It Works
@@ -327,7 +327,7 @@ export default function Home() {
               </p>
               <div className="flex items-baseline justify-center gap-1">
                 <span className="text-white font-display font-black text-6xl">
-                  $299
+                  $1,000
                 </span>
                 <span className="text-white/60 text-lg">/game</span>
               </div>
@@ -403,7 +403,7 @@ export default function Home() {
             availability per game.
           </p>
           <Link href="/book" className="btn-primary text-center">
-            Book Your SlapCart — $299
+            Book Your SlapCart — $1,000
           </Link>
         </div>
       </section>
