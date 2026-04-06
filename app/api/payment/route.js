@@ -1,4 +1,4 @@
-// Square sandbox mode — swap SQUARE_ACCESS_TOKEN and app/location IDs to go live
+// Square mode: auto-detects sandbox vs production based on NEXT_PUBLIC_SQUARE_APP_ID
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
@@ -9,7 +9,12 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: "Missing payment token" }, { status: 400 });
     }
 
-    const response = await fetch("https://connect.squareup.com/v2/payments", {
+    const isSandbox = (process.env.NEXT_PUBLIC_SQUARE_APP_ID || "").startsWith("sandbox-");
+    const squareBase = isSandbox
+      ? "https://connect.squareupsandbox.com"
+      : "https://connect.squareup.com";
+
+    const response = await fetch(`${squareBase}/v2/payments`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
