@@ -1,5 +1,10 @@
-// Square mode: auto-detects sandbox vs production based on NEXT_PUBLIC_SQUARE_APP_ID
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 export async function POST(request) {
   try {
@@ -9,12 +14,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: "Missing payment token" }, { status: 400 });
     }
 
-    const isSandbox = (process.env.NEXT_PUBLIC_SQUARE_APP_ID || "").startsWith("sandbox-");
-    const squareBase = isSandbox
-      ? "https://connect.squareupsandbox.com"
-      : "https://connect.squareup.com";
-
-    const response = await fetch(`${squareBase}/v2/payments`, {
+    const response = await fetch("https://connect.squareup.com/v2/payments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -44,13 +44,28 @@ export async function POST(request) {
 
     const paymentId = data.payment.id;
 
-    // ── Fire confirmation + owner alert emails (non-blocking) ────────────────
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.slapcarts.com";
-    fetch(`${baseUrl}/api/send-email`, {
+    // Save booking to Supabase (non-blocking — don't fail payment if DB write fails)
+    supabase.from("bookings").insert({
+      game: `LSU vs. ${booking?.game || "TBD"}`,
+      opponent: booking?.game || "TBD",
+      drop_off_time: booking?.dropoffTime || null,
+      zone: booking?.spot?.charAt(0) || null,
+      spot: booking?.spot || null,
+      first_name: booking?.firstName || null,
+      last_name: booking?.lastName || null,
+      email: booking?.email || null,
+      phone: booking?.phone || null,
+      payment_id: paymentId,
+    }).then(({ error }) => {
+      if (error) console.error("Supabase insert error:", error.message);
+    });
+
+    // Fire confirmation email (non-blocking)
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/send-email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ booking, paymentId }),
-    }).catch((err) => console.error("Email send failed (non-fatal):", err));
+    }).catch((e) => console.error("Email send error:", e));
 
     return NextResponse.json({ success: true, paymentId });
   } catch (err) {
