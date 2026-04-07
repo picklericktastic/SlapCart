@@ -25,7 +25,8 @@ export async function POST(request) {
         source_id: token,
         idempotency_key: crypto.randomUUID(),
         amount_money: {
-          amount: 100, // $1.00 in cents – TEMP TEST      currency: "USD",
+          amount: 100, // $1.00 in cents - TEMP TEST
+          currency: "USD",
         },
         location_id: process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID,
         buyer_email_address: booking?.email || undefined,
